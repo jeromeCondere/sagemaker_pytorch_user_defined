@@ -15,8 +15,8 @@ from __future__ import absolute_import
 from subprocess import CalledProcessError
 
 from retrying import retry
-from sagemaker_pytorch_serving_container import torchserve
-from sagemaker_pytorch_serving_container import handler_service
+from sagemaker_pytorch_serving_container_user_defined import torchserve
+from sagemaker_pytorch_serving_container_user_defined import handler_service
 
 HANDLER_SERVICE = handler_service.__file__
 

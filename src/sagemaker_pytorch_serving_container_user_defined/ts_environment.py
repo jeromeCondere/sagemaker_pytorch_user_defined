@@ -16,7 +16,7 @@ characteristics, environment variables and configuration settings.
 
 from __future__ import absolute_import
 
-from sagemaker_pytorch_serving_container import ts_parameters
+from sagemaker_pytorch_serving_container_user_defined import ts_parameters
 
 import os
 import logging
@@ -54,12 +54,15 @@ class TorchServeEnvironment():
         self._max_workers = int(os.environ.get(ts_parameters.MODEL_SERVER_MAX_WORKERS, DEFAULT_TS_MAX_WORKERS))
         self._response_timeout = int(os.environ.get(ts_parameters.MODEL_SERVER_RESPONSE_TIMEOUT,
                                                     DEFAULT_TS_RESPONSE_TIMEOUT))
+        self._startup_timeout = int(os.environ.get(ts_parameters.MODEL_SERVER_STARTUP_TIMEOUT,
+                                                    DEFAULT_TS_RESPONSE_TIMEOUT))
 
     def is_env_set(self):  # type: () -> bool
         """bool: whether or not the environment variables have been set"""
         ts_env_list = [ts_parameters.MODEL_SERVER_BATCH_SIZE, ts_parameters.MODEL_SERVER_MAX_BATCH_DELAY,
                        ts_parameters.MODEL_SERVER_MIN_WORKERS, ts_parameters.MODEL_SERVER_MAX_WORKERS,
                        ts_parameters.MODEL_SERVER_RESPONSE_TIMEOUT]
+        
         if any(env in ts_env_list for env in os.environ):
             return True
 

@@ -22,24 +22,24 @@ import psutil
 import logging
 from retrying import retry
 
-import sagemaker_pytorch_serving_container
-from sagemaker_pytorch_serving_container import ts_environment
+import sagemaker_pytorch_serving_container_user_defined
+from sagemaker_pytorch_serving_container_user_defined import ts_environment
 from sagemaker_inference import environment, utils, model_server
 
 logger = logging.getLogger()
 
 TS_CONFIG_FILE = os.path.join("/etc", "sagemaker-ts.properties")
 DEFAULT_TS_CONFIG_FILE = pkg_resources.resource_filename(
-    sagemaker_pytorch_serving_container.__name__, "/etc/default-ts.properties"
+    sagemaker_pytorch_serving_container_user_defined.__name__, "/etc/default-ts.properties"
 )
 MME_TS_CONFIG_FILE = pkg_resources.resource_filename(
-    sagemaker_pytorch_serving_container.__name__, "/etc/mme-ts.properties"
+    sagemaker_pytorch_serving_container_user_defined.__name__, "/etc/mme-ts.properties"
 )
 DEFAULT_TS_LOG_FILE = pkg_resources.resource_filename(
-    sagemaker_pytorch_serving_container.__name__, "/etc/log4j2.xml"
+    sagemaker_pytorch_serving_container_user_defined.__name__, "/etc/log4j2.xml"
 )
 DEFAULT_TS_MODEL_NAME = "model"
-DEFAULT_HANDLER_SERVICE = "sagemaker_pytorch_serving_container.handler_service"
+DEFAULT_HANDLER_SERVICE = "sagemaker_pytorch_serving_container_user_defined.handler_service"
 
 ENABLE_MULTI_MODEL = os.getenv("SAGEMAKER_MULTI_MODEL", "false") == "true"
 MODEL_STORE = "/" if ENABLE_MULTI_MODEL else os.path.join(os.getcwd(), ".sagemaker", "ts", "models")
@@ -73,6 +73,7 @@ def start_torchserve(handler_service=DEFAULT_HANDLER_SERVICE):
 
     _set_python_path()
 
+
     _create_torchserve_config_file(handler_service)
 
     if os.path.exists(model_server.REQUIREMENTS_PATH):
@@ -95,6 +96,7 @@ def start_torchserve(handler_service=DEFAULT_HANDLER_SERVICE):
         ts_torchserve_cmd += default_model_path_args
 
     print(ts_torchserve_cmd)
+    print('after torch serve')
 
     logger.info(ts_torchserve_cmd)
     subprocess.Popen(ts_torchserve_cmd)
@@ -127,14 +129,17 @@ def _generate_ts_config_properties(handler_service):
     env = environment.Environment()
     user_defined_configuration = {
         "default_response_timeout": env.model_server_timeout,
+        "default_startup_timeout": int(os.environ.get("MODEL_SERVER_STARTUP_TIMEOUT", 60)),#Added but doesn't work
         "default_workers_per_model": env.model_server_workers,
         "inference_address": "http://0.0.0.0:{}".format(env.inference_http_port),
         "management_address": "http://0.0.0.0:{}".format(env.management_http_port),
         "default_service_handler": handler_service + ":handle",
     }
 
+
     ts_env = ts_environment.TorchServeEnvironment()
 
+    # Adding startup timeout as it is the param we need
     if ts_env.is_env_set() and not ENABLE_MULTI_MODEL:
         models_string = f'''{{\\
         "{DEFAULT_TS_MODEL_NAME}": {{\\
@@ -145,7 +150,8 @@ def _generate_ts_config_properties(handler_service):
                 "maxWorkers": {ts_env._max_workers},\\
                 "batchSize": {ts_env._batch_size},\\
                 "maxBatchDelay": {ts_env._max_batch_delay},\\
-                "responseTimeout": {ts_env._response_timeout}\\
+                "responseTimeout": {ts_env._response_timeout},\\
+                "startupTimeout": {ts_env._startup_timeout}\\
                 }}\\
             }}\\
         }}'''
@@ -158,6 +164,7 @@ def _generate_ts_config_properties(handler_service):
     for key in user_defined_configuration:
         value = user_defined_configuration.get(key)
         if value:
+            print(f'key: {key}  value: {value}')
             custom_configuration += "{}={}\n".format(key, value)
 
     if ENABLE_MULTI_MODEL:
