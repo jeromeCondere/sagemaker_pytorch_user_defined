@@ -61,7 +61,7 @@ class TorchServeEnvironment():
         """bool: whether or not the environment variables have been set"""
         ts_env_list = [ts_parameters.MODEL_SERVER_BATCH_SIZE, ts_parameters.MODEL_SERVER_MAX_BATCH_DELAY,
                        ts_parameters.MODEL_SERVER_MIN_WORKERS, ts_parameters.MODEL_SERVER_MAX_WORKERS,
-                       ts_parameters.MODEL_SERVER_RESPONSE_TIMEOUT]
+                       ts_parameters.MODEL_SERVER_RESPONSE_TIMEOUT, ts_parameters.MODEL_SERVER_STARTUP_TIMEOUT]
         
         if any(env in ts_env_list for env in os.environ):
             return True

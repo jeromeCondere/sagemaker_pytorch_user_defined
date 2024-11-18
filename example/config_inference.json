@@ -1,0 +1,12 @@
+{
+    "region": "us-east-1",
+    "bucket": "<val>",
+    "role": "arn:aws:iam::229874777750:role/Val-Val-Role",
+    "profile": "<val>",
+    "instance": "ml.g5.2xlarge",
+    "aws_access_key_id": "<val>",
+    "aws_secret_access_key": "<val>",
+    "aws_session_token": "<val>",
+    "endpoint_name": "my-endpoint"
+
+}
